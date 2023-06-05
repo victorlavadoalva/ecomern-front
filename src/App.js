@@ -5,6 +5,7 @@ import "./App.css";
 import Navigation from "./components/Navigation";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import NewProduct from "./pages/NewProduct";
 import Signup from "./pages/Signup";
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
               <Route path="/signup" element={<Signup />} />
             </>
           )}
+          <Route path="/new-product" element={<NewProduct />} />
 
           <Route path="*" element={<Home />} />
         </Routes>
