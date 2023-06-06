@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Alert, Button, Col, Container, Form, Row } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import axios from "../axios";
 import { useCreateProductMutation } from "../services/appApi";
 import "./NewProduct.css";
 
@@ -15,7 +16,35 @@ function NewProduct() {
   const [createProduct, { isError, error, isLoading, isSuccess }] =
     useCreateProductMutation();
 
-  //cloudinary config
+  function handleRemoveImg(imgObj) {
+    setImgToRemove(imgObj.public_id);
+    axios
+      .delete(`/images/${imgObj.public_id}/`)
+      .then((res) => {
+        setImgToRemove(null);
+        setImages((prev) =>
+          prev.filter((img) => img.public_id !== imgObj.public_id)
+        );
+      })
+      .catch((e) => console.log(e));
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!name || !description || !price || !category || !images.length) {
+      return alert("Please fill out all the fields");
+    }
+    createProduct({ name, description, price, category, images }).then(
+      ({ data }) => {
+        if (data.length > 0) {
+          setTimeout(() => {
+            navigate("/");
+          }, 1500);
+        }
+      }
+    );
+  }
+
   function showWidget() {
     const widget = window.cloudinary.createUploadWidget(
       {
@@ -24,14 +53,10 @@ function NewProduct() {
       },
       (error, result) => {
         if (!error && result.event === "success") {
-          console.log("Imagen subida con exito");
           setImages((prev) => [
             ...prev,
             { url: result.info.url, public_id: result.info.public_id },
           ]);
-        }
-        if (error) {
-          console.log(error);
         }
       }
     );
@@ -42,10 +67,10 @@ function NewProduct() {
     <Container>
       <Row>
         <Col md={6} className="new-product__form--container">
-          <Form style={{ width: "100%" }}>
-            <h1>Create a product</h1>
+          <Form style={{ width: "100%" }} onSubmit={handleSubmit}>
+            <h1 className="mt-4">Create a product</h1>
             {isSuccess && (
-              <Alert variant="success">Product created with success</Alert>
+              <Alert variant="success">Product created with succcess</Alert>
             )}
             {isError && <Alert variant="danger">{error.data}</Alert>}
             <Form.Group className="mb-3">
@@ -72,7 +97,7 @@ function NewProduct() {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Price ($)</Form.Label>
+              <Form.Label>Price($)</Form.Label>
               <Form.Control
                 type="number"
                 placeholder="Price ($)"
@@ -91,9 +116,9 @@ function NewProduct() {
                 <option disabled selected>
                   -- Select One --
                 </option>
-                <option value="technology">Technology</option>
-                <option value="tablets">Tablets</option>
-                <option value="phones">Phones</option>
+                <option value="technology">technology</option>
+                <option value="tablets">tablets</option>
+                <option value="phones">phones</option>
                 <option value="laptops">laptops</option>
               </Form.Select>
             </Form.Group>
@@ -106,7 +131,12 @@ function NewProduct() {
                 {images.map((image) => (
                   <div className="image-preview">
                     <img src={image.url} />
-                    {/*add icon for removing */}
+                    {imgToRemove != image.public_id && (
+                      <i
+                        className="fa fa-times-circle"
+                        onClick={() => handleRemoveImg(image)}
+                      ></i>
+                    )}
                   </div>
                 ))}
               </div>
